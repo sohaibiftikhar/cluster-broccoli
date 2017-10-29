@@ -1,18 +1,21 @@
 package de.frosner.broccoli.templates
 
-import javax.inject.Inject
-
-import de.frosner.broccoli.instances.InstanceConfiguration
+import com.hubspot.jinjava.{Jinjava, JinjavaConfig}
 import de.frosner.broccoli.models.{Instance, ParameterInfo, ParameterType}
 import org.apache.commons.lang3.StringEscapeUtils
-import play.api.libs.json.{JsString, JsValue, Json}
+import play.api.libs.json.{JsValue, Json}
+
+import scala.collection.JavaConversions._
 
 /**
   * Renders json representation of the passed instance
   *
   * @param defaultType The default type of template parameters
+  * @param jinjavaConfig Jinjava configuration
   */
-class TemplateRenderer(defaultType: ParameterType) {
+class TemplateRenderer(defaultType: ParameterType, jinjavaConfig: JinjavaConfig) {
+  val jinjava = new Jinjava(jinjavaConfig)
+
   def sanitize(parameter: String, value: String, parameterInfos: Map[String, ParameterInfo]): String = {
     val parameterType = parameterInfos
       .get(parameter)
@@ -29,19 +32,16 @@ class TemplateRenderer(defaultType: ParameterType) {
   def renderJson(instance: Instance): JsValue = {
     val template = instance.template
     val parameterInfos = template.parameterInfos
-    val parameterValues = instance.parameterValues
-
-    val templateWithValues = parameterValues.foldLeft(template.template) {
-      case (intermediateTemplate, (parameter, value)) =>
-        intermediateTemplate.replaceAllLiterally(s"{{$parameter}}", sanitize(parameter, value, parameterInfos))
+    val parameterDefaults = parameterInfos
+      .map {
+        case (name, parameterInfo) => (name, parameterInfo.default)
+      }
+      .collect {
+        case (name, Some(value)) => (name, value)
+      }
+    val parameterValues = (parameterDefaults ++ instance.parameterValues).map {
+      case (name, value) => (name, sanitize(name, value, parameterInfos))
     }
-    val parameterDefaults = parameterInfos.flatMap {
-      case (parameterId, parameterInfo) => parameterInfo.default.map(default => (parameterId, default))
-    }
-    val templateWithDefaults = parameterDefaults.foldLeft(templateWithValues) {
-      case (intermediateTemplate, (parameter, value)) =>
-        intermediateTemplate.replaceAllLiterally(s"{{$parameter}}", sanitize(parameter, value, parameterInfos))
-    }
-    Json.parse(templateWithDefaults)
+    Json.parse(jinjava.render(template.template, parameterValues))
   }
 }
