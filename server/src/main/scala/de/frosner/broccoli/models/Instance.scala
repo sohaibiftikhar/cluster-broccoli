@@ -5,30 +5,7 @@ import play.api.libs.json._
 
 import scala.util.Try
 
-case class Instance(id: String, template: Template, parameterValues: Map[String, String]) extends Serializable {
-  def updateParameterValues(newParameterValues: Map[String, String]): Try[Instance] =
-    Try {
-      require(newParameterValues("id") == parameterValues("id"), s"The parameter value 'id' must not be changed.")
-
-      Instance(
-        id = this.id,
-        template = this.template,
-        parameterValues = newParameterValues
-      )
-    }
-
-  def updateTemplate(newTemplate: Template, newParameterValues: Map[String, String]): Try[Instance] =
-    Try {
-      require(newParameterValues("id") == parameterValues("id"), s"The parameter value 'id' must not be changed.")
-
-      Instance(
-        id = this.id,
-        template = newTemplate,
-        parameterValues = newParameterValues
-      )
-    }
-
-}
+case class Instance(id: String, template: Template, parameterValues: Map[String, String]) extends Serializable
 
 object Instance {
   implicit val instanceApiWrites: Writes[Instance] = {

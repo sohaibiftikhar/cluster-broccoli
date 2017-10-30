@@ -1,6 +1,7 @@
 package de.frosner.broccoli.templates
 
 import com.hubspot.jinjava.JinjavaConfig
+import com.hubspot.jinjava.interpret.FatalTemplateErrorsException
 import de.frosner.broccoli.models.{Instance, ParameterInfo, ParameterType, Template}
 import org.specs2.mock.Mockito
 import org.specs2.mutable.Specification
@@ -128,6 +129,20 @@ class TemplateRendererSpec extends Specification with Mockito {
         parameterValues = Map("id" -> "-3")
       )
       templateRenderer.renderJson(instance2) === JsString("less than or equal to zero")
+    }
+
+    "throws an exception if the template contains no default and no value" in {
+      val instance = Instance(
+        id = "1",
+        template = Template(
+          id = "1",
+          template = "\"{{id}} {{age}}\"",
+          description = "desc",
+          parameterInfos = Map("age" -> ParameterInfo("age", None, None, secret = Some(false), `type` = None))
+        ),
+        parameterValues = Map("id" -> "Frank")
+      )
+      templateRenderer.renderJson(instance) must throwA[FatalTemplateErrorsException]
     }
   }
 

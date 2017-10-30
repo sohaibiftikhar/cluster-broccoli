@@ -1,5 +1,6 @@
 package de.frosner.broccoli.templates
 
+import com.hubspot.jinjava.interpret.RenderResult
 import com.hubspot.jinjava.{Jinjava, JinjavaConfig}
 import de.frosner.broccoli.models.{Instance, ParameterInfo, ParameterType}
 import org.apache.commons.lang3.StringEscapeUtils
@@ -29,7 +30,7 @@ class TemplateRenderer(defaultType: ParameterType, jinjavaConfig: JinjavaConfig)
     sanitized
   }
 
-  def renderJson(instance: Instance): JsValue = {
+  def renderForResult(instance: Instance): RenderResult = {
     val template = instance.template
     val parameterInfos = template.parameterInfos
     val parameterDefaults = parameterInfos
@@ -42,6 +43,11 @@ class TemplateRenderer(defaultType: ParameterType, jinjavaConfig: JinjavaConfig)
     val parameterValues = (parameterDefaults ++ instance.parameterValues).map {
       case (name, value) => (name, sanitize(name, value, parameterInfos))
     }
-    Json.parse(jinjava.render(template.template, parameterValues))
+    jinjava.renderForResult(template.template, parameterValues)
+  }
+
+  def renderJson(instance: Instance): JsValue = {
+    val renderResult = renderForResult(instance)
+    Json.parse(renderResult.getOutput)
   }
 }
