@@ -6,23 +6,8 @@ import play.api.libs.json._
 import scala.util.Try
 
 case class Instance(id: String, template: Template, parameterValues: Map[String, String]) extends Serializable {
-
-  def requireParameterValueConsistency(parameterValues: Map[String, String], template: Template) = {
-    val realParametersWithValues = parameterValues.keySet ++ template.parameterInfos.flatMap {
-      case (key, info) => info.default.map(Function.const(key))
-    }
-    require(
-      template.parameters == realParametersWithValues,
-      s"The given parameters values (${parameterValues.keySet}) " +
-        s"need to match the ones in the template (${template.parameters})."
-    )
-  }
-
-  requireParameterValueConsistency(parameterValues, template)
-
   def updateParameterValues(newParameterValues: Map[String, String]): Try[Instance] =
     Try {
-      requireParameterValueConsistency(newParameterValues, template)
       require(newParameterValues("id") == parameterValues("id"), s"The parameter value 'id' must not be changed.")
 
       Instance(
@@ -34,7 +19,6 @@ case class Instance(id: String, template: Template, parameterValues: Map[String,
 
   def updateTemplate(newTemplate: Template, newParameterValues: Map[String, String]): Try[Instance] =
     Try {
-      requireParameterValueConsistency(newParameterValues, newTemplate)
       require(newParameterValues("id") == parameterValues("id"), s"The parameter value 'id' must not be changed.")
 
       Instance(
