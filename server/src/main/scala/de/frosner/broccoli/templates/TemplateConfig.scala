@@ -1,10 +1,10 @@
 package de.frosner.broccoli.templates
 
-import de.frosner.broccoli.models.{ParameterInfo, ParameterType}
+import de.frosner.broccoli.models.ParameterType
 
 object TemplateConfig {
 
-  final case class TemplateInfo(description: Option[String], parameters: Option[Map[String, Parameter]])
+  final case class TemplateInfo(description: Option[String], parameters: Map[String, Parameter])
 
   final case class Parameter(name: Option[String],
                              default: Option[String],

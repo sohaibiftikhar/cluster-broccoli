@@ -27,8 +27,11 @@ class DirectoryTemplateSourceSpec extends Specification with TemporaryTemplatesC
           "curl",
           Source.fromFile(templatesDirectory.resolve("curl/template.json").toFile).mkString,
           "A periodic job that sends an HTTP GET request to a specified address every minute.",
-          Map("URL" -> ParameterInfo("URL", None, Some("localhost:8000"), None, None, Some(1)),
-              "enabled" -> ParameterInfo("enabled", None, Some("true"), None, None, Some(2)))
+          Map(
+            "id" -> ParameterInfo("id", None, None, None, None, Some(0)),
+            "URL" -> ParameterInfo("URL", None, Some("localhost:8000"), None, None, Some(1)),
+            "enabled" -> ParameterInfo("enabled", None, Some("true"), None, None, Some(2))
+          )
         ))).exactly(1)
     }
 
@@ -36,12 +39,6 @@ class DirectoryTemplateSourceSpec extends Specification with TemporaryTemplatesC
       val templates =
         new DirectoryTemplateSource(templatesDirectory.toString, false).loadTemplates()
       templates.map(_.description) must contain(beEqualTo("curl-without-decription template")).exactly(1)
-    }
-
-    "use default parameters if meta file is not provided" in { templatesDirectory: Path =>
-      val templates =
-        new DirectoryTemplateSource(templatesDirectory.toString, false).loadTemplates()
-      templates.map(_.parameterInfos) must contain(empty).exactly(1)
     }
 
     "not contain templates that failed to parse" in { templatesDirectory: Path =>
