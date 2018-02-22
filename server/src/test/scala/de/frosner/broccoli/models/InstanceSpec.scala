@@ -18,10 +18,17 @@ class InstanceSpec extends Specification with ScalaCheck with ModelArbitraries w
   }
 
   "An instance" should {
-    "be possible to construct if the parameters to be filled match the ones in the template" in {
-      val instance1 = Instance("1", Template("1", "\"{{id}}\"", "desc", Map.empty), Map("id" -> "Heinz"))
-      val instance2 = Instance("1", Template("1", "\"{{id}}\"", "desc", Map.empty), Map("id" -> "Heinz"))
+    "be possible to construct if the parameters to be filled match the ones in the template's parameter infos" in {
+      val parameterInfos = Map("id" -> ParameterInfo("id", None, None, None, None, None))
+      val instance1 = Instance("1", Template("1", "\"{{id}}\"", "desc", parameterInfos), Map("id" -> "Heinz"))
+      val instance2 = Instance("1", Template("1", "\"{{id}}\"", "desc", parameterInfos), Map("id" -> "Heinz"))
       instance1 === instance2
+    }
+
+    "throw an exception during construction if not all variables are specified in the template's parameter infos" in {
+      Instance("1", Template("1", "\"{{id}}\"", "desc", Map.empty), Map("id" -> "Heinz")) must throwA(
+        new IllegalArgumentException(
+          "requirement failed: The given parameters values (Set(id)) need to match the ones in the template (Set())."))
     }
   }
 

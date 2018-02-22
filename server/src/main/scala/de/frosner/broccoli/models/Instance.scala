@@ -5,7 +5,20 @@ import play.api.libs.json._
 
 import scala.util.Try
 
-case class Instance(id: String, template: Template, parameterValues: Map[String, String]) extends Serializable
+case class Instance(id: String, template: Template, parameterValues: Map[String, String]) extends Serializable {
+  private def requireParameterValueConsistency(parameterValues: Map[String, String], template: Template) = {
+    val realParametersWithValues = parameterValues.keySet ++ template.parameterInfos.flatMap {
+      case (key, info) => info.default.map(Function.const(key))
+    }
+    require(
+      template.parameters == realParametersWithValues,
+      s"The given parameters values (${parameterValues.keySet}) " +
+        s"need to match the ones in the template (${template.parameters})."
+    )
+  }
+
+  requireParameterValueConsistency(parameterValues, template)
+}
 
 object Instance {
   implicit val instanceApiWrites: Writes[Instance] = {
@@ -41,5 +54,4 @@ object Instance {
         (parameter, possiblyCensoredValue)
     })
   }
-
 }
