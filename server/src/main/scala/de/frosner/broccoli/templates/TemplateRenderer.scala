@@ -18,7 +18,9 @@ import scala.collection.JavaConversions._
 class TemplateRenderer(defaultType: ParameterType, jinjavaConfig: JinjavaConfig) {
   val jinjava = new Jinjava(jinjavaConfig)
 
-  def sanitize(parameter: String, value: String, parameterInfos: Map[String, ParameterInfo]): String = {
+  private[templates] def sanitize(parameter: String,
+                                  value: String,
+                                  parameterInfos: Map[String, ParameterInfo]): String = {
     val parameterType = parameterInfos
       .get(parameter)
       .flatMap(_.`type`)
