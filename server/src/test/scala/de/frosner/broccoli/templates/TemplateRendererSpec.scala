@@ -144,7 +144,7 @@ class TemplateRendererSpec extends Specification with Mockito {
       templateRenderer.renderJson(instance2) === JsString("less than or equal to zero")
     }
 
-    "throws an exception if the template contains no default and no value" in {
+    "throws an exception if the template does not contain a value and default (withFailOnUnknownTokens = true)" in {
       val instance = Instance(
         id = "1",
         template = Template(
@@ -157,6 +157,23 @@ class TemplateRendererSpec extends Specification with Mockito {
       )
 
       templateRenderer.renderJson(instance) must throwA[FatalTemplateErrorsException]
+    }
+
+    "ignore undefined variables (withFailOnUnknownTokens = false)" in {
+      val templateRenderer =
+        new TemplateRenderer(ParameterType.Raw, JinjavaConfig.newBuilder().withFailOnUnknownTokens(false).build())
+      val instance = Instance(
+        id = "1",
+        template = Template(
+          id = "1",
+          template = "\"{{id}} {{age}}\"",
+          description = "desc",
+          parameterInfos = Map("id" -> ParameterInfo("id", None, None, None, None, None))
+        ),
+        parameterValues = Map("id" -> "Frank")
+      )
+
+      templateRenderer.renderJson(instance) === JsString("Frank ")
     }
   }
 
