@@ -145,19 +145,16 @@ class TemplateRendererSpec extends Specification with Mockito {
     }
 
     "throws an exception if the template contains no default and no value" in {
-      // we mock instance because it contains its own validation of the parameters.
-      // We keep the test to make sure that even without validation in the instance TemplateRenderer does not allow unbound variables.
-      val template = Template(
+      val instance = Instance(
         id = "1",
-        template = "\"{{id}} {{age}}\"",
-        description = "desc",
-        parameterInfos =
-          Map("id" -> ParameterInfo("id", None, None, None, None, None),
-              "age" -> ParameterInfo("age", None, None, secret = Some(false), `type` = None, orderIndex = None))
+        template = Template(
+          id = "1",
+          template = "\"{{id}} {{age}}\"",
+          description = "desc",
+          parameterInfos = Map("id" -> ParameterInfo("id", None, None, None, None, None))
+        ),
+        parameterValues = Map("id" -> "Frank")
       )
-      val instance = mock[Instance]
-      instance.template returns template
-      instance.parameterValues returns Map("id" -> "Frank")
 
       templateRenderer.renderJson(instance) must throwA[FatalTemplateErrorsException]
     }
